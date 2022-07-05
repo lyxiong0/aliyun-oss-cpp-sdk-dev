@@ -62,6 +62,7 @@ void OssClientImpl::initSigner(const std::string &region, const std::string &ver
     authSigner_ = AuthSigner::CreateSigner(region, version, product);
 }
 
+<<<<<<< HEAD
 void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
     if (!additionalHeaders.empty()) {
         for (const auto &header : additionalHeaders) {
@@ -73,6 +74,8 @@ void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additio
     }
 }
 
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 int OssClientImpl::asyncExecute(Runnable * r) const
 {
     if (executor_ == nullptr)
@@ -218,6 +221,7 @@ void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& htt
     Credentials credentials = credentialsProvider_->getCredentials();
     if (!credentials.SessionToken().empty()) {
         httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
+<<<<<<< HEAD
     }
 
     //TODO anonymous request 
@@ -226,6 +230,25 @@ void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& htt
     AuthSignerParam param(std::move(bucket), std::move(key), std::move(credentials), std::move(requestTime));
     param.setAdditionalHeaders(additionalHeaders_);
     param.setParameters(parameters);
+=======
+    }
+
+    HeaderSet addiHeaders;
+    if (!additionalHeaders_.empty()) {
+        for (const auto &header : additionalHeaders_) {
+            std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
+            if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
+                addiHeaders.insert(lowerKey);
+            }
+        }
+    }
+
+    //TODO anonymous request 
+    HeaderSet addi;
+    std::time_t requestTime = std::time(nullptr);
+    requestTime += getRequestDateOffset();
+    AuthSignerParam param(std::move(bucket), std::move(key), std::move(parameters), std::move(credentials), std::move(addiHeaders), std::move(requestTime));
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     authSigner_->signRequest(*httpRequest.get(), param);
 }
 

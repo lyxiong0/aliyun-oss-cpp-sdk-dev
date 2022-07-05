@@ -37,8 +37,12 @@ namespace OSS
     std::string ComputeContentETag(std::istream & stream);
 
     std::string GenerateUuid();
+<<<<<<< HEAD
     std::string UrlEncode(const std::string &src);
     std::string UrlEncodeIgnoreSlash(const std::string & src);
+=======
+    std::string UrlEncode(const std::string &src, bool ignoreSlash = false);
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     std::string UrlDecode(const std::string &src);
 
     std::string Base64Encode(const std::string &src);

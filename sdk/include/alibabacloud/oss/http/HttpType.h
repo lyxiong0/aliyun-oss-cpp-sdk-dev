@@ -69,8 +69,11 @@ namespace OSS
             static const char* RANGE;
             static const char* USER_AGENT;
             static const char* HOST;
+<<<<<<< HEAD
             static const char* X_OSS_CONTENT_SHA256;
             static const char* X_OSS_DATE;
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     };
 }
 }

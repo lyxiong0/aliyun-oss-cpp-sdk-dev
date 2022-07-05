@@ -85,6 +85,7 @@ namespace AlibabaCloud
                                                    .configuration(conf)
                                                    .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
                                                    .authVersion("4.0")
+<<<<<<< HEAD
                                                    .region("cn-hangzhou")
                                                    .build<OssClient>();
         
@@ -104,10 +105,14 @@ namespace AlibabaCloud
                                                    .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
                                                    .authVersion("4.0")
                                                    .region("cn-hangzhou") // no use
+=======
+                                                   .region("region")
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
                                                    .cloudBoxId("cloudBoxId")
                                                    .build<OssClient>();
 
             GetObjectRequest request(BucketName, ObjectName);
+<<<<<<< HEAD
             auto outcome = client.GetObject(request);
             EXPECT_EQ(outcome.isSuccess(), false);
             std::cout << "GetObjectToFile fail"
@@ -163,6 +168,21 @@ namespace AlibabaCloud
 
             
 
+=======
+
+            auto outcome = client.GetObject(request);
+
+            if (outcome.isSuccess())
+            {
+                std::cout << "GetObjectToFile success" << outcome.result().Metadata().ContentLength() << std::endl;
+            }
+            else
+            {
+                std::cout << "GetObjectToFile fail"
+                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+            }
+            EXPECT_EQ(outcome.isSuccess(), false);
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
         }
    }
 }

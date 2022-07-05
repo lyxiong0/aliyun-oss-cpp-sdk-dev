@@ -53,6 +53,7 @@ std::string AuthSignerV4::genCanonicalReuqest(const std::string &method,
     // "GET" | "PUT" | "POST" | ... + "\n"
     ss << method << "\n"; 
     // UriEncode(<Resource>) + "\n"
+<<<<<<< HEAD
     ss << UrlEncodeIgnoreSlash(resource) << "\n"; 
 
     // Canonical Query String + "\n"
@@ -66,6 +67,23 @@ std::string AuthSignerV4::genCanonicalReuqest(const std::string &method,
     bool isFirstParam = true;
     for (auto const &param : encodeParams)
     {
+=======
+    ss << UrlEncode(resource, true) << "\n"; 
+
+    // Canonical Query String + "\n"
+    // UriEncode(<QueryParam1>) + "=" + UriEncode(<Value>) + "&" + UriEncode(<QueryParam2>) + "\n"
+    char separator = '&';
+    bool isFirstParam = true;
+    for (auto const &param : parameters)
+    {
+        std::string lowerKey = Trim(ToLower(param.first.c_str()).c_str());
+        std::string lowerVal = Trim(ToLower(param.second.c_str()).c_str());
+        if (ParamtersToSign.find(lowerKey) == ParamtersToSign.end())
+        {
+            continue;
+        }
+
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
         if (!isFirstParam)
         {
             ss << separator;
@@ -75,21 +93,40 @@ std::string AuthSignerV4::genCanonicalReuqest(const std::string &method,
             isFirstParam = false;
         }
 
+<<<<<<< HEAD
         ss << param.first;
         if (!param.second.empty())
         {
             ss << "=" << param.second;
+=======
+        ss << UrlEncode(lowerKey);
+        if (!lowerVal.empty())
+        {
+            ss << "=" << UrlEncode(lowerVal);
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
         }
     }
     ss << "\n";
 
     // Lowercase(<HeaderName1>) + ":" + Trim(<value>) + "\n" + Lowercase(<HeaderName2>) + ":" + Trim(<value>) + "\n" + "\n"
+<<<<<<< HEAD
+=======
+    std::string playload;
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     for (const auto &header : headers)
     {
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
         std::string value = Trim(header.second.c_str());
         if (needToSignHeader(lowerKey, additionalHeaders)) {
             ss << lowerKey << ":" << value << "\n";
+<<<<<<< HEAD
+=======
+            if (lowerKey == "x-oss-content-sha256")
+            {
+                // hashed payload
+                playload = value;
+            }
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
         }
     }
     ss << "\n";
@@ -116,7 +153,12 @@ std::string AuthSignerV4::genCanonicalReuqest(const std::string &method,
     }
 
     ss << additionalSS.str() << "\n"
+<<<<<<< HEAD
        << Trim(headers.at(Http::X_OSS_CONTENT_SHA256).c_str());
+=======
+       << playload;
+
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     return ss.str();
 }
 
@@ -196,6 +238,7 @@ std::string AuthSignerV4::genAuthStr(const std::string &accessKeyId, const std::
 
 void AuthSignerV4::addHeaders(HttpRequest& request, const AuthSignerParam& param) const {
     // Date
+<<<<<<< HEAD
     if (!request.hasHeader(Http::X_OSS_DATE)) {
         request.addHeader(Http::X_OSS_DATE, ToUtcTimeWithoutMill(param.RequestTime()));
     }
@@ -207,17 +250,46 @@ void AuthSignerV4::addHeaders(HttpRequest& request, const AuthSignerParam& param
     if (param.AddiHeaders().find(Http::HOST) != param.AddiHeaders().end() &&
         !request.hasHeader(Http::HOST)) {
             request.addHeader(Http::HOST, request.url().host());
+=======
+    if (request.hasHeader(Http::DATE)) {
+        request.removeHeader(Http::DATE);
+    }
+    if (!request.hasHeader("x-oss-date")) {
+        request.addHeader("x-oss-date", ToUtcTimeWithoutMill(param.RequestTime()));
+    }
+
+    // Sha256
+    request.addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
+
+    // host
+    if (param.AddiHeaders().find("host") != param.AddiHeaders().end() &&
+        !request.hasHeader(Http::HOST)) {
+            request.addHeader(Http::HOST, request.url().toString());
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
     }
 }
 
 bool AuthSignerV4::signRequest(HttpRequest& request, const AuthSignerParam& param) const {
     std::string method = Http::MethodToString(request.method());
 
+<<<<<<< HEAD
     std::string resource = GenResource(param.Bucket(), param.Key());
+=======
+    std::string resource;
+    resource.append("/");
+    if (!param.Bucket().empty()) {
+        resource.append(param.Bucket());
+        resource.append("/");
+    }
+    if (!param.Key().empty()) {
+        resource.append(param.Key());
+    }
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 
     addHeaders(request, param);
     std::string canonical = genCanonicalReuqest(method, resource, request.Headers(), param.Parameters(), param.AddiHeaders());
 
+<<<<<<< HEAD
     std::string date = request.Header(Http::X_OSS_DATE);
     // convert to "20060102" time format
     std::string day(date.begin(), date.begin() + 8);
@@ -226,6 +298,21 @@ bool AuthSignerV4::signRequest(HttpRequest& request, const AuthSignerParam& para
     std::string stringToSign = genStringToSign(canonical, date, scope, signAlgo_->name());
     std::string signature = genSignature(param.Cred().AccessKeySecret(), signAlgo_, day, region_, product_, stringToSign);
     std::string authValue = genAuthStr(param.Cred().AccessKeyId(), scope, param.AddiHeaders(), signature);
+=======
+    std::string date = request.Header("x-oss-date");
+    // convert to "20060102" time format
+    std::string day(date.begin(), date.begin() + 8);
+
+    std::stringstream scope;
+    scope << day
+          << "/" << region_
+          << "/" << product_
+          << "/aliyun_v4_request";
+
+    std::string stringToSign = genStringToSign(canonical, date, scope.str(), signAlgo_->name());
+    std::string signature = genSignature(param.Cred().AccessKeySecret(), signAlgo_, day, region_, product_, stringToSign);
+    std::string authValue = genAuthStr(param.Cred().AccessKeyId(), scope.str(), param.AddiHeaders(), signature);
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 
     request.addHeader(Http::AUTHORIZATION, authValue);
 

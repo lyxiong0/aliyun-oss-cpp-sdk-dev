@@ -48,7 +48,7 @@ std::string AlibabaCloud::OSS::GenerateUuid()
     return "";
 }
 
-std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
+std::string AlibabaCloud::OSS::UrlEncode(const std::string & src, bool ignoreSlash)
 {
     std::stringstream dest;
     static const char *hex = "0123456789ABCDEF";
@@ -56,7 +56,8 @@ std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
 
     for (size_t i = 0; i < src.size(); i++) {
         c = src[i];
-        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')) {
+        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')
+            || (ignoreSlash && c == '/')) {
             dest << c;
         } else if (c == ' ') {
             dest << "%20";
@@ -1172,6 +1173,7 @@ TierType AlibabaCloud::OSS::ToTierType(const char *name)
     else return TierType::Standard;
 }
 
+<<<<<<< HEAD
 std::string AlibabaCloud::OSS::GenResource(const std::string &bucket, const std::string &object) {
     std::stringstream resource;
     resource << "/";
@@ -1203,6 +1205,8 @@ std::string AlibabaCloud::OSS::GenScope(const std::string &day, const std::strin
     return scope.str();
 }
 
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 #if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
 std::map<std::string, std::string> AlibabaCloud::OSS::JsonStringToMap(const std::string& jsonStr)
 {

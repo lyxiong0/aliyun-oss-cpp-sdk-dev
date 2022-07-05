@@ -1064,12 +1064,17 @@ TEST_F(UtilsFunctionTest, UrlEncodeIgnoreSlashTest)
 {
     auto i = urlOriIgnoreSlash.size();
     for (i = 0; i < urlOriIgnoreSlash.size(); i++) {
+<<<<<<< HEAD
         auto result = UrlEncodeIgnoreSlash(urlOriIgnoreSlash[i]);
+=======
+        auto result = UrlEncode(urlOriIgnoreSlash[i], true);
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
         EXPECT_STREQ(result.c_str(), urlPatIgnoreSlash[i].c_str());
     }
     EXPECT_TRUE((i == urlOriIgnoreSlash.size()));
 }
 
+<<<<<<< HEAD
 TEST_F(UtilsFunctionTest, GenResourceTest) {
     std::string bucket;
     std::string object;
@@ -1111,5 +1116,7 @@ TEST_F(UtilsFunctionTest, CaseInsensitiveLessTest) {
     EXPECT_EQ(true, set.find(Http::X_OSS_CONTENT_SHA256) != set.end());
     EXPECT_EQ(true, set.find("x-oss-content-sha256") != set.end());
 }
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 }
 }

@@ -51,8 +51,11 @@ const char* Http::LAST_MODIFIED = "Last-Modified";
 const char* Http::RANGE = "Range";
 const char* Http::USER_AGENT = "User-Agent";
 const char* Http::HOST = "Host";
+<<<<<<< HEAD
 const char* Http::X_OSS_CONTENT_SHA256 = "X-Oss-Content-Sha256";
 const char* Http::X_OSS_DATE = "X-Oss-Date";
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 
 
 HttpRequest::HttpRequest(Http::Method method) :

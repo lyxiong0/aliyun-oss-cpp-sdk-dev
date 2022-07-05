@@ -23,7 +23,10 @@
 #include "../utils/SignUtils.h"
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
+<<<<<<< HEAD
 #include <alibabacloud/oss/http/HttpType.h>
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 
 namespace AlibabaCloud
 {

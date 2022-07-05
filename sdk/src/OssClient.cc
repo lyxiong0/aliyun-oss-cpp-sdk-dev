@@ -186,10 +186,13 @@ void OssClient::OssClientBuiderImpl::init(OssClient *client)
     if (!region_.empty() && !authVersion_.empty()) {
         client->client_->initSigner(region_, authVersion_, product_);
     }
+<<<<<<< HEAD
 
     if (!additionalHeaders_.empty()) {
         client->client_->setAdditionalHeaders(additionalHeaders_);
     }
+=======
+>>>>>>> 4272ea1 (support builder pattern for OssClient.)
 }
 
 
