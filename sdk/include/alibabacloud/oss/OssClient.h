@@ -72,6 +72,7 @@ namespace OSS
     class ALIBABACLOUD_OSS_EXPORT OssClient
     {
     public:
+
         OssClient(const std::string& endpoint, const std::string& accessKeyId, const std::string& accessKeySecret, 
                                 const ClientConfiguration& configuration);
         OssClient(const std::string& endpoint, const std::string& accessKeyId, const std::string& accessKeySecret, const std::string& securityToken,
@@ -189,6 +190,7 @@ namespace OSS
         VoidOutcome ExtendBucketWormWorm(const ExtendBucketWormRequest& request) const;
         GetBucketWormOutcome GetBucketWorm(const GetBucketWormRequest& request) const;
 #endif
+
         /*Object*/
         ListObjectOutcome ListObjects(const std::string& bucket) const;
         ListObjectOutcome ListObjects(const std::string& bucket, const std::string& prefix) const;
@@ -318,68 +320,5 @@ namespace OSS
     protected:
         std::shared_ptr<OssClientImpl> client_;
     };
-
-    //     class ALIBABACLOUD_OSS_EXPORT OssClientBuilder
-    //     {
-    //         // OssClient(const std::string& endpoint, const std::string& accessKeyId, const std::string& accessKeySecret,
-    //         //                         const ClientConfiguration& configuration);
-    //         // OssClient(const std::string& endpoint, const std::string& accessKeyId, const std::string& accessKeySecret, const std::string& securityToken,
-    //         //                         const ClientConfiguration& configuration);
-    //         // OssClient(const std::string& endpoint, const Credentials& credentials, const ClientConfiguration& configuration);
-    //         // OssClient(const std::string& endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration& configuration);
-
-    //     //             private OSSClientBuilderImpl() {
-    //     //     this.clientConfiguration = OSSClientBuilder.getClientConfiguration();
-    //     // }
-
-    //     // public OSSClientBuilderImpl endpoint(String endpoint) {
-    //     //     this.endpoint = endpoint;
-    //     //     return this;
-    //     // }
-
-    //     // public OSSClientBuilderImpl credentialsProvider(CredentialsProvider credentialsProvider) {
-    //     //     this.credentialsProvider = credentialsProvider;
-    //     //     return this;
-    //     // }
-
-    //     public:
-    //         OssClientBuilder &endpoint(const std::string &endpoint)
-    //         {
-    //             endpoint_ = endpoint;
-    //             return *this;
-    //         }
-
-    //         OssClientBuilder &region(const std::string &region)
-    //         {
-    //             region_ = region;
-    //             return *this;
-    //         }
-
-    //         OssClientBuilder &cloudBoxId(const std::string &cloudBoxId)
-    //         {
-    //             cloudBoxId_ = cloudBoxId;
-    //             return *this;
-    //         }
-
-    //         OssClientBuilder &configuration(const ClientConfiguration &configuration)
-    //         {
-    //             configuration_ = configuration;
-    //             return *this;
-    //         }
-
-    //     private:
-    //         std::string endpoint_;
-    //         std::string region_;
-    //         std::string cloudBoxId_;
-    //         ClientConfiguration configuration_;
-            
-    //         std::shared_ptr<CredentialsProvider> credentialsProvider_;
-    //         std::shared_ptr<Signer> signer_;
-    //         std::shared_ptr<Executor> executor_;
-    //         std::shared_ptr<SignGenerator> signGenerator_;
-    //         bool isValidEndpoint_;
-    //     }
-    // };
-
 }
 }

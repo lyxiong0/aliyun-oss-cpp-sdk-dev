@@ -16,7 +16,7 @@ namespace AlibabaCloud
             virtual std::string presign(const SignParam &signParam) const override;
             virtual std::string signRTMP(const SignParam &signParam) const override;
 
-        private:
+        // private:
             std::string genCanonicalReuqest(const std::string &method,
                                             const std::string &resource,
                                             const HeaderCollection &headers,

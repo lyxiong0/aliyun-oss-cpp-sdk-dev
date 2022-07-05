@@ -39,7 +39,9 @@ std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
     bool isFirstParam = true;
     for (auto const &param : parameters)
     {
-        if (ParamtersToSign.find(param.first) == ParamtersToSign.end())
+        std::string lowerKey = Trim(ToLower(param.first.c_str()).c_str());
+        std::string lowerVal = Trim(ToLower(param.second.c_str()).c_str());
+        if (ParamtersToSign.find(lowerKey) == ParamtersToSign.end())
         {
             continue;
         }
@@ -53,10 +55,10 @@ std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
             isFirstParam = false;
         }
 
-        ss << UrlEncode(param.first);
-        if (!param.second.empty())
+        ss << UrlEncode(lowerKey);
+        if (!lowerVal.empty())
         {
-            ss << "=" << UrlEncode(param.second);
+            ss << "=" << UrlEncode(lowerVal);
         }
     }
     ss << "\n";
@@ -85,7 +87,7 @@ std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
             continue;
         }
 
-        if (isFirstHeader)
+        if (!isFirstHeader)
         {
             additionalSS << ";";
         }
@@ -201,19 +203,23 @@ void SignGeneratorV4::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest
 
 void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
 {
-    addHeaders(httpRequest, signParam);
+    if (signParam.product_.empty() || signParam.region_.empty() || signParam.resource_.empty()) {
+        OSS_LOG(LogLevel::LogError, TAG, "signParam is invalid, product(%s) region(%s) resource(%s)", signParam.product_.c_str(), signParam.region_.c_str(), signParam.resource_.c_str());
+        return;
+    }
 
+    addHeaders(httpRequest, signParam);
+    
     std::string method = Http::MethodToString(httpRequest->method());
+    std::string canonical = genCanonicalReuqest(method, signParam.resource_, httpRequest->Headers(), signParam.params_, signParam.additionalHeaders_);
 
     std::string date = httpRequest->Header("x-oss-date");
-
-    std::stringstream scope;
     // convert to "20060102" time format
     std::string day(date.begin(), date.begin() + 8);
-
     std::string region;
     std::string product;
 
+    std::stringstream scope;
     if (signParam.cloudBoxId_.empty())
     {
         region = signParam.region_;
@@ -227,7 +233,6 @@ void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest
           << "/" << signParam.product_
           << "/aliyun_v4_request";
 
-    std::string canonical = genCanonicalReuqest(method, signParam.resource_, httpRequest->Headers(), signParam.params_, signParam.additionalHeaders_);
     std::string stringToSign = genStringToSign(canonical, date, scope.str(), signAlgo_->name());
     std::string signature = genSignature(signParam.credentials_.AccessKeySecret(), signAlgo_, day, region, product, stringToSign, canonical);
     std::string authValue = genAuthStr(signParam.credentials_.AccessKeyId(), scope.str(), signParam.additionalHeaders_, signature);

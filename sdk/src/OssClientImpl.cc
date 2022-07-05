@@ -1306,10 +1306,10 @@ StringOutcome OssClientImpl::GeneratePresignedUrl(const GeneratePresignedUrlRequ
     parameters["Expires"] = date;
     parameters["OSSAccessKeyId"] = credentials.AccessKeyId();
 
-    // host
+    //host
     std::stringstream ss;
     ss << CombineHostString(endpoint_, request.bucket_, configuration().isCname);
-    // path
+    //path
     auto path = CombinePathString(endpoint_, request.bucket_, request.key_);
     if (request.unencodedSlash_)
     {
