@@ -39,8 +39,8 @@ using namespace tinyxml2;
 
 namespace
 {
-    const std::string SERVICE_NAME = "OSS";
-    const char *TAG = "OssClientImpl";
+const std::string SERVICE_NAME = "OSS";
+const char *TAG = "OssClientImpl";
 }
 
 OssClientImpl::OssClientImpl(const std::string &endpoint, const std::shared_ptr<CredentialsProvider>& credentialsProvider, const ClientConfiguration & configuration) :
@@ -125,23 +125,12 @@ bool OssClientImpl::hasResponseError(const std::shared_ptr<HttpResponse>&respons
 
 void OssClientImpl::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const
 {
-    for (auto const &header : headers)
-    {
+    for (auto const& header : headers) {
         httpRequest->addHeader(header.first, header.second);
     }
 
-    // common headers
+    //common headers
     httpRequest->addHeader(Http::USER_AGENT, configuration().userAgent);
-
-    // //Date
-    // if (httpRequest->hasHeader("x-oss-date")) {
-    //     httpRequest->addHeader(Http::DATE, httpRequest->Header("x-oss-date"));
-    // }
-    // if (!httpRequest->hasHeader(Http::DATE)) {
-    //     std::time_t t = std::time(nullptr);
-    //     t += getRequestDateOffset();
-    //     httpRequest->addHeader(Http::DATE, ToGmtTime(t));
-    // }
 }
 
 void OssClientImpl::addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5) const

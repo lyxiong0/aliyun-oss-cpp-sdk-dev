@@ -24,8 +24,6 @@
 #include <alibabacloud/oss/utils/Executor.h>
 #include <alibabacloud/oss/OssFwd.h>
 #include "auth/Signer.h"
-#include "auth/SignGeneratorV1.h"
-#include "auth/SignGeneratorV4.h"
 #include "auth/AuthSigner.h"
 #include "client/Client.h"
 #ifdef GetObject

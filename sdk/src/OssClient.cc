@@ -35,7 +35,6 @@ void AlibabaCloud::OSS::InitializeSdk()
     if (IsSdkInitialized())
         return;
     InitLogInner();
-    // curl global
     CurlHttpClient::initGlobalState();
     SdkInitDone = true;
 }

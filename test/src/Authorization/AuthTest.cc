@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include <alibabacloud/oss/OssClient.h>
 #include "../Config.h"
-#include "../../../sdk/src/auth/SignGeneratorV1.h"
-#include "../../../sdk/src/auth/SignGeneratorV4.h"
 #include <alibabacloud/oss/OssRequest.h>
 #include <fstream>
 
