@@ -59,9 +59,9 @@ namespace OSS
     std::string TrimQuotes(const char* source);
     std::string ToLower(const char* source);
     std::string ToUpper(const char* source);
-    std::string ToGmtTime(std::time_t &t);
+    std::string ToGmtTime(const std::time_t &t);
     std::string ToUtcTime(std::time_t &t);
-    std::string ToUtcTimeWithoutMill(std::time_t &t);
+    std::string ToUtcTimeWithoutMill(const std::time_t &t);
     std::time_t UtcToUnixTime(const std::string &t);
     std::string LowerHexToString(const ByteBuffer &data);
 

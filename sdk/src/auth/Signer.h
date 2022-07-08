@@ -37,7 +37,7 @@ namespace AlibabaCloud
             };
             virtual ~Signer();
 
-            virtual ByteBuffer calculate(const ByteBuffer &src, const std::string &secret) const = 0;
+            virtual ByteBuffer calculate(const std::string &src, const ByteBuffer &secret) const = 0;
             virtual std::string generate(const std::string &src, const std::string &secret) const = 0;
             std::string name() const;
             Type type() const;

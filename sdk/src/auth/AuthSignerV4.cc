@@ -1,19 +1,41 @@
-#include "SignGeneratorV4.h"
-#include <openssl/sha.h>
-#include <time.h>
-#include <openssl/hmac.h>
-#ifdef OPENSSL_IS_BORINGSSL
-#include <openssl/base64.h>
-#endif
+/*
+ * Copyright 2009-2017 Alibaba Cloud All rights reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "AuthSignerV4.h"
+
 
 using namespace AlibabaCloud::OSS;
 
 namespace
 {
-    const char *TAG = "SignGeneratorV4";
+    const char *TAG = "AuthSignerV4";
 }
 
-std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
+AuthSignerV4::AuthSignerV4(const std::string &region, const std::string &product) : region_(region), product_(product) {
+  signAlgo_ = std::make_shared<HmacSha256Signer>();
+}
+
+bool AuthSignerV4::needToSignHeader(const std::string &headerKey, const HeaderSet &additionalHeaders) const {
+    return headerKey == "content-type" 
+        || headerKey == "content-md5" 
+        || headerKey.compare(0, 6, "x-oss-") 
+        || additionalHeaders.find(headerKey) != additionalHeaders.end();
+}
+
+std::string AuthSignerV4::genCanonicalReuqest(const std::string &method,
                                                  const std::string &resource,
                                                  const HeaderCollection &headers,
                                                  const ParameterCollection &parameters,
@@ -69,8 +91,7 @@ std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
     {
         std::string lowerKey = Trim(ToLower(header.first.c_str()).c_str());
         std::string value = Trim(header.second.c_str());
-        // if (lowerKey == "content-type" || lowerKey == "content-md5" || lowerKey.compare(0, 6, "x-oss-")) {
-        if (lowerKey.compare(0, 6, "x-oss-") == 0) {
+        if (needToSignHeader(lowerKey, additionalHeaders)) {
             ss << lowerKey << ":" << value << "\n";
             if (lowerKey == "x-oss-content-sha256")
             {
@@ -108,7 +129,7 @@ std::string SignGeneratorV4::genCanonicalReuqest(const std::string &method,
     return ss.str();
 }
 
-std::string SignGeneratorV4::genStringToSign(const std::string &canonical, const std::string &date, const std::string &scope, const std::string &algoName) const
+std::string AuthSignerV4::genStringToSign(const std::string &canonical, const std::string &date, const std::string &scope, const std::string &algoName) const
 {
     // Hex(SHA256Hash(Canonical Reuqest))
     ByteBuffer hash(SHA256_DIGEST_LENGTH);
@@ -133,22 +154,13 @@ std::string SignGeneratorV4::genStringToSign(const std::string &canonical, const
     return stringToSign.str();
 }
 
-std::string SignGeneratorV4::genSignature(const std::string &accessKeySecret, const std::shared_ptr<Signer> &signAlgo,
+std::string AuthSignerV4::genSignature(const std::string &accessKeySecret, const std::shared_ptr<Signer> &signAlgo,
                                           const std::string &day, const std::string &region, const std::string &product,
                                           const std::string &stringToSign) const
 {
     // HMACSHA256(HMACSHA256(HMACSHA256(HMACSHA256("aliyun_v4"+SK,Date),Region),oss),"aliyun_v4_request");
     std::string toKey = "aliyun_v4" + accessKeySecret;
     ByteBuffer signingSecret = ByteBuffer{toKey.begin(), toKey.end()};
-
-    // std::strig res; 
-    // SignHmacSHA256(day, signingSecret, res);
-
-    // std::cerr << "toKey: " << toKey
-    //         << "\nday: " << day
-    //         << "\nres: " << LowerHexToString(ByteBuffer(res.begin(), res.end())).c_str() << std::endl;
-
-    // ByteBuffer signingKey = signAlgo->calculate(signAlgo->calculate(signAlgo->calculate(signAlgo->calculate(ByteBuffer{toKey.begin(), toKey.end()}, day), region), product), "aliyun_v4_request");
     ByteBuffer signingDate = signAlgo->calculate(day, signingSecret);
     ByteBuffer signingRegion = signAlgo->calculate(region, signingDate);
     ByteBuffer signingService = signAlgo->calculate(product, signingRegion);
@@ -158,22 +170,13 @@ std::string SignGeneratorV4::genSignature(const std::string &accessKeySecret, co
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) signingRegion:\n%s\nregion:%s", this, LowerHexToString(signingRegion).c_str(), region.c_str());
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) signingService:\n%s\nproduct:%s", this, LowerHexToString(signingService).c_str(), product.c_str());
     OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) signingKey:\n%s", this, LowerHexToString(signingKey).c_str());
-    // HEX(HMAC-SHA256(SigningKey,StringToSign))
     ByteBuffer signSrc = signAlgo->calculate(stringToSign, signingKey);
 
     return LowerHexToString(signSrc);
-
-    // ByteBuffer hash(SHA256_DIGEST_LENGTH);
-    // SHA256_CTX sha256;
-    // SHA256_Init(&sha256);
-    // SHA256_Update(&sha256, signSrc.data(), signSrc.size());
-    // SHA256_Final(hash.data(), &sha256);
-
-    // return LowerHexToString(hash);
 }
 
-std::string genAuthStr(const std::string &accessKeyId, const std::string &scope,
-                        const HeaderSet &additionalHeaders, const std::string &signature) {
+std::string AuthSignerV4::genAuthStr(const std::string &accessKeyId, const std::string &scope,
+                        const HeaderSet &additionalHeaders, const std::string &signature) const {
     std::stringstream authValue;
     authValue
         << "OSS4-HMAC-SHA256 Credential=" << accessKeyId << "/" << scope;
@@ -200,83 +203,60 @@ std::string genAuthStr(const std::string &accessKeyId, const std::string &scope,
     return authValue.str();
 }
 
-void SignGeneratorV4::addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const {
-    // date
-    if (!httpRequest->hasHeader("x-oss-date")) {
-        std::time_t t = std::time(nullptr);
-        t += signParam.dateOffset_;
-        httpRequest->addHeader("x-oss-date", ToUtcTimeWithoutMill(t));
+void AuthSignerV4::addHeaders(HttpRequest& request, const AuthSignerParam& param) const {
+    // Date
+    if (request.hasHeader(Http::DATE)) {
+        request.removeHeader(Http::DATE);
+    }
+    if (!request.hasHeader("x-oss-date")) {
+        request.addHeader("x-oss-date", ToUtcTimeWithoutMill(param.RequestTime()));
     }
 
-    // security token
-    if (!signParam.credentials_.SessionToken().empty())
-    {
-        httpRequest->addHeader("x-oss-security-token", signParam.credentials_.SessionToken());
-    }
-
-    // sha256
-    httpRequest->addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
+    // Sha256
+    request.addHeader("x-oss-content-sha256", "UNSIGNED-PAYLOAD");
 
     // host
-    if (signParam.additionalHeaders_.find("host") != signParam.additionalHeaders_.end() &&
-        !httpRequest->hasHeader(Http::HOST)) {
-            httpRequest->addHeader(Http::HOST, httpRequest->url().toString());
+    if (param.AddiHeaders().find("host") != param.AddiHeaders().end() &&
+        !request.hasHeader(Http::HOST)) {
+            request.addHeader(Http::HOST, request.url().toString());
     }
 }
 
-void SignGeneratorV4::signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const
-{
-    if (signParam.product_.empty() || signParam.region_.empty() || signParam.resource_.empty()) {
-        OSS_LOG(LogLevel::LogError, TAG, "signParam is invalid, product(%s) region(%s) resource(%s)", signParam.product_.c_str(), signParam.region_.c_str(), signParam.resource_.c_str());
-        return;
+bool AuthSignerV4::signRequest(HttpRequest& request, const AuthSignerParam& param) const {
+    std::string method = Http::MethodToString(request.method());
+
+    std::string resource;
+    resource.append("/");
+    if (!param.Bucket().empty()) {
+        resource.append(param.Bucket());
+        resource.append("/");
+    }
+    if (!param.Key().empty()) {
+        resource.append(param.Key());
     }
 
-    addHeaders(httpRequest, signParam);
-    
-    std::string method = Http::MethodToString(httpRequest->method());
-    std::string canonical = genCanonicalReuqest(method, signParam.resource_, httpRequest->Headers(), signParam.params_, signParam.additionalHeaders_);
+    addHeaders(request, param);
+    std::string canonical = genCanonicalReuqest(method, resource, request.Headers(), param.Parameters(), param.AddiHeaders());
 
-    std::string date = httpRequest->Header("x-oss-date");
+    std::string date = request.Header("x-oss-date");
     // convert to "20060102" time format
     std::string day(date.begin(), date.begin() + 8);
-    std::string region;
 
     std::stringstream scope;
-    if (signParam.cloudBoxId_.empty())
-    {
-        region = signParam.region_;
-    }
-    else
-    {
-        region = signParam.cloudBoxId_;
-    }
     scope << day
-          << "/" << region
-          << "/" << signParam.product_
+          << "/" << region_
+          << "/" << product_
           << "/aliyun_v4_request";
 
     std::string stringToSign = genStringToSign(canonical, date, scope.str(), signAlgo_->name());
-    std::string signature = genSignature(signParam.credentials_.AccessKeySecret(), signAlgo_, day, region, signParam.product_, stringToSign);
-    std::string authValue = genAuthStr(signParam.credentials_.AccessKeyId(), scope.str(), signParam.additionalHeaders_, signature);
+    std::string signature = genSignature(param.Cred().AccessKeySecret(), signAlgo_, day, region_, product_, stringToSign);
+    std::string authValue = genAuthStr(param.Cred().AccessKeyId(), scope.str(), param.AddiHeaders(), signature);
 
-    httpRequest->addHeader(Http::AUTHORIZATION, authValue);
+    request.addHeader(Http::AUTHORIZATION, authValue);
 
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) CanonicalString:\n%s", this, httpRequest.get(), canonical.c_str());
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) stringToSign:\n%s", this, httpRequest.get(), stringToSign.c_str());
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) signature:\n%s", this, httpRequest.get(), signature.c_str());
-    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) request(%p) Authorization:\n%s", this, httpRequest.get(), authValue.c_str());
-}
-
-std::string SignGeneratorV4::presign(const SignParam &signParam) const
-{
-    (void)(signParam);
-    OSS_LOG(LogLevel::LogError, TAG, "V4 version url signature is not supported");
-    return "";
-}
-
-std::string SignGeneratorV4::signRTMP(const SignParam &signParam) const
-{
-    (void)(signParam);
-    OSS_LOG(LogLevel::LogError, TAG, "V4 version RTMP signature is not supported");
-    return "";
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) CanonicalString:\n%s", this, canonical.c_str());
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) stringToSign:\n%s", this, stringToSign.c_str());
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) signature:\n%s", this, signature.c_str());
+    OSS_LOG(LogLevel::LogDebug, TAG, "client(%p) Authorization:\n%s", this, authValue.c_str());
+    return true;
 }

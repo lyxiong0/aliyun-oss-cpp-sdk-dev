@@ -101,8 +101,8 @@ std::string HmacSha1Signer::generate(const std::string & src, const std::string 
 #endif
 }
 
-ByteBuffer HmacSha1Signer::calculate(const ByteBuffer &src, const std::string & secret) const
+ByteBuffer HmacSha1Signer::calculate(const std::string &src, const ByteBuffer & secret) const
 {
-    OSS_LOG(LogLevel::LogError, "HmacSha1Signer", "no implemented, src = %s, secret = %s", src.data(), secret.c_str());
+    OSS_LOG(LogLevel::LogError, "HmacSha1Signer", "no implemented, src = %s, secret = %s", src.data(), secret.data());
     return ByteBuffer{};
 }

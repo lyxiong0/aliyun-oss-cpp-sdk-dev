@@ -2,15 +2,17 @@
 
 #include "SignGenerator.h"
 #include <alibabacloud/oss/OssRequest.h>
+#include <unordered_set>
 
 namespace AlibabaCloud
 {
     namespace OSS
     {
+        static std::unordered_set<std::string> signHeaders = {Http::CONTENT_TYPE, Http::CONTENT_MD5};
         class SignGeneratorV4 : public SignGenerator
         {
         public:
-            SignGeneratorV4(const std::string &algo) : SignGenerator("4.0", algo) {}
+            SignGeneratorV4() : SignGenerator("4.0") {}
 
             virtual void signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const override;
             virtual std::string presign(const SignParam &signParam) const override;
@@ -27,7 +29,7 @@ namespace AlibabaCloud
 
             std::string genSignature(const std::string &accessKeySecret, const std::shared_ptr<Signer> &signAlgo,
                                      const std::string &day, const std::string &region, const std::string &product,
-                                     const std::string &stringToSign, const std::string &canonical) const;
+                                     const std::string &stringToSign) const;
 
             void addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const;
         };

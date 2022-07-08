@@ -64,7 +64,7 @@ namespace AlibabaCloud
         class SignGenerator
         {
         public:
-            SignGenerator(const std::string &version, const std::string &algoType);
+            SignGenerator(const std::string &version);
 
             virtual void signHeader(const std::shared_ptr<HttpRequest> &httpRequest, const SignParam &signParam) const = 0;
             virtual std::string presign(const SignParam &signParam) const = 0;

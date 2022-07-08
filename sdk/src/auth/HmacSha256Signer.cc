@@ -15,6 +15,7 @@
  */
 
 #include "HmacSha256Signer.h"
+#include "../utils/Utils.h"
 #if 0//def _WIN32
 #include <windows.h>
 #include <wincrypt.h>
@@ -41,7 +42,7 @@ std::string HmacSha256Signer::generate(const std::string & src, const std::strin
     return "";
 }
 
-ByteBuffer HmacSha256Signer::calculate(const ByteBuffer &src, const std::string & secret) const
+ByteBuffer HmacSha256Signer::calculate(const std::string &src, const ByteBuffer & secret) const
 {
     if (src.size() == 0)
         return ByteBuffer{};
@@ -92,12 +93,15 @@ ByteBuffer HmacSha256Signer::calculate(const ByteBuffer &src, const std::string 
     delete dest;
     return ret;
 #else
-    ByteBuffer md(32);
-    unsigned int mdLen = 32;
+    ByteBuffer md(EVP_MAX_MD_SIZE);
+    unsigned int mdLen = EVP_MAX_MD_SIZE;
 
-    if (HMAC(EVP_sha256(), secret.c_str(), static_cast<int>(secret.size()),
-        src.data(), src.size(),
-        md.data(), &mdLen) == nullptr)
+    if (HMAC(EVP_sha256(), 
+             secret.data(), 
+             static_cast<int>(secret.size()),
+             reinterpret_cast<unsigned char const*>(src.data()), 
+             static_cast<int>(src.size()),
+             md.data(), &mdLen) == nullptr)
         return ByteBuffer{};
 
     md.resize(mdLen);

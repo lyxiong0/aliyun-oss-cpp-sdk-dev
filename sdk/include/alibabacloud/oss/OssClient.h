@@ -48,7 +48,7 @@ namespace OSS
     std::string ALIBABACLOUD_OSS_EXPORT Base64Encode(const char* src, int len);
     std::string ALIBABACLOUD_OSS_EXPORT Base64EncodeUrlSafe(const std::string& src);
     std::string ALIBABACLOUD_OSS_EXPORT Base64EncodeUrlSafe(const char* src, int len);
-    std::string ALIBABACLOUD_OSS_EXPORT ToGmtTime(std::time_t& t);
+    std::string ALIBABACLOUD_OSS_EXPORT ToGmtTime(const std::time_t& t);
     std::string ALIBABACLOUD_OSS_EXPORT ToUtcTime(std::time_t& t);
     std::time_t ALIBABACLOUD_OSS_EXPORT UtcToUnixTime(const std::string& t);
     uint64_t    ALIBABACLOUD_OSS_EXPORT ComputeCRC64(uint64_t crc, void* buf, size_t len);
@@ -87,18 +87,23 @@ namespace OSS
             OssClientBuiderImpl& endpoint(const std::string& value);
             OssClientBuiderImpl& credentialsProvider(const std::shared_ptr<CredentialsProvider>& credentialsProvider);
             OssClientBuiderImpl& configuration(const ClientConfiguration& configuration);
+            OssClientBuiderImpl& authVersion(const std::string& authVersion);
+            OssClientBuiderImpl& region(const std::string& region);
+            OssClientBuiderImpl& cloudBoxId(const std::string& cloudBoxId);
+            OssClientBuiderImpl& additionalHeaders(const std::vector<std::string> &additionalHeaders);
             template <typename T> T build();
         private:
             friend class OssClient;
             OssClientBuiderImpl();
             void init(OssClient *);
         private:
-            friend class OssClient;
             std::string endpoint_;
             std::shared_ptr<CredentialsProvider> credentialsProvider_;
             ClientConfiguration configuration_;
             std::string region_;
-            bool regionIsSet_;
+            std::string authVersion_;
+            std::string product_;
+            std::vector<std::string> additionalHeaders_;
         };
 
         static OssClientBuiderImpl Builder() {

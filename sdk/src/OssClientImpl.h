@@ -26,6 +26,7 @@
 #include "auth/Signer.h"
 #include "auth/SignGeneratorV1.h"
 #include "auth/SignGeneratorV4.h"
+#include "auth/AuthSigner.h"
 #include "client/Client.h"
 #ifdef GetObject
 #undef GetObject
@@ -44,23 +45,11 @@ namespace OSS
         virtual ~OssClientImpl();
         int asyncExecute(Runnable * r) const;
 
-        inline void setAuthAlgorithm(const std::string &authAlgorithm) {
-            authAlgorithm_ = authAlgorithm;
+        inline void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
+            additionalHeaders_ = additionalHeaders;
         }
 
-        inline void setRegion(const std::string &region) {
-            region_ = region;
-        }
-
-        inline void setProduct(const std::string &product) {
-            product_ = product;
-        }
-
-        inline void setCloudBoxId(const std::string &cloudBoxId) {
-            cloudBoxId_ = cloudBoxId;
-        }
-
-        void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders);
+        void initSigner(const std::string &region = "", const std::string &version = "1.0", const std::string &product = "oss");
 
 #if !defined(OSS_DISABLE_BUCKET)
         ListBucketsOutcome ListBuckets(const ListBucketsRequest &request) const;
@@ -197,9 +186,8 @@ namespace OSS
     private:
         void addHeaders(const std::shared_ptr<HttpRequest> &httpRequest, const HeaderCollection &headers) const;
         void addBody(const std::shared_ptr<HttpRequest> &httpRequest, const std::shared_ptr<std::iostream>& body, bool contentMd5 = false) const;
-        void addSignInfo(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const;
-        void addUrl(const std::shared_ptr<HttpRequest> &httpRequest, const std::string &endpoint, const ServiceRequest &request) const;
         void addOther(const std::shared_ptr<HttpRequest> &httpRequest, const ServiceRequest &request) const;
+        void addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& httpRequest, const std::string& endpoint, const ServiceRequest& request) const;
 
         OssError buildError(const Error &error) const;
         ServiceResult buildResult(const OssRequest &request, const std::shared_ptr<HttpResponse> &httpResponse) const;
@@ -209,17 +197,10 @@ namespace OSS
         std::shared_ptr<CredentialsProvider> credentialsProvider_;
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
-        std::shared_ptr<SignGenerator> signGenerator_;
         // "HMAC-SHA1" "HMAC-SHA256", default with version
-        std::string authAlgorithm_;
-        HeaderSet additionalHeaders_;
-        // such as "cn-hangzhou". attention: not "oss-cn-hangzhou"
-        std::string region_;
-        std::string product_;
-        // cloud box id
-        std::string cloudBoxId_;
+        std::vector<std::string> additionalHeaders_;
         bool isValidEndpoint_;
-        std::string authVersion_;
+        std::shared_ptr<AuthSigner> authSigner_;
     };
 }
 }

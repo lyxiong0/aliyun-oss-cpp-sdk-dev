@@ -488,7 +488,7 @@ bool AlibabaCloud::OSS::IsIp(const std::string &host)
 #endif
 }
 
-std::string AlibabaCloud::OSS::ToGmtTime(std::time_t &t)
+std::string AlibabaCloud::OSS::ToGmtTime(const std::time_t &t)
 {
     std::stringstream date;
     std::tm tm;
@@ -538,7 +538,7 @@ std::string AlibabaCloud::OSS::ToUtcTime(std::time_t &t)
     return date.str();
 }
 
-std::string AlibabaCloud::OSS::ToUtcTimeWithoutMill(std::time_t &t)
+std::string AlibabaCloud::OSS::ToUtcTimeWithoutMill(const std::time_t &t)
 {
     std::stringstream date;
     std::tm tm;
