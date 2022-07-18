@@ -62,6 +62,17 @@ void OssClientImpl::initSigner(const std::string &region, const std::string &ver
     authSigner_ = AuthSigner::CreateSigner(region, version, product);
 }
 
+void OssClientImpl::setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
+    if (!additionalHeaders.empty()) {
+        for (const auto &header : additionalHeaders) {
+            std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
+            if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
+                additionalHeaders_.insert(lowerKey);
+            }
+        }
+    }
+}
+
 int OssClientImpl::asyncExecute(Runnable * r) const
 {
     if (executor_ == nullptr)
@@ -209,21 +220,12 @@ void OssClientImpl::addUrlAndSignRequest(const std::shared_ptr<HttpRequest>& htt
         httpRequest->addHeader("x-oss-security-token", credentials.SessionToken());
     }
 
-    HeaderSet addiHeaders;
-    if (!additionalHeaders_.empty()) {
-        for (const auto &header : additionalHeaders_) {
-            std::string lowerKey = Trim(ToLower(header.c_str()).c_str());
-            if (lowerKey.compare(0, 6, "x-oss-", 6) != 0 && lowerKey != "content-md5" && lowerKey != "content-type") {
-                addiHeaders.insert(lowerKey);
-            }
-        }
-    }
-
     //TODO anonymous request 
-    HeaderSet addi;
     std::time_t requestTime = std::time(nullptr);
     requestTime += getRequestDateOffset();
-    AuthSignerParam param(std::move(bucket), std::move(key), std::move(parameters), std::move(credentials), std::move(addiHeaders), std::move(requestTime));
+    AuthSignerParam param(std::move(bucket), std::move(key), std::move(credentials), std::move(requestTime));
+    param.setAdditionalHeaders(additionalHeaders_);
+    param.setParameters(parameters);
     authSigner_->signRequest(*httpRequest.get(), param);
 }
 

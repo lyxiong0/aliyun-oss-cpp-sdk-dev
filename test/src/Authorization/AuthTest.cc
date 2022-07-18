@@ -85,24 +85,84 @@ namespace AlibabaCloud
                                                    .configuration(conf)
                                                    .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
                                                    .authVersion("4.0")
-                                                   .region("region")
+                                                   .region("cn-hangzhou")
+                                                   .build<OssClient>();
+        
+            GetObjectRequest request(BucketName, ObjectName);
+            auto outcome = client.GetObject(request);
+            EXPECT_EQ(outcome.isSuccess(), false);
+            std::cout << "GetObjectToFile fail"
+                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+        }
+
+        TEST_F(AuthTest, SignV4CloudBoxTest)
+        {
+            // clound-box and no addtional header
+            ClientConfiguration conf;
+            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
+                                                   .configuration(conf)
+                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
+                                                   .authVersion("4.0")
+                                                   .region("cn-hangzhou") // no use
                                                    .cloudBoxId("cloudBoxId")
                                                    .build<OssClient>();
 
             GetObjectRequest request(BucketName, ObjectName);
-
             auto outcome = client.GetObject(request);
-
-            if (outcome.isSuccess())
-            {
-                std::cout << "GetObjectToFile success" << outcome.result().Metadata().ContentLength() << std::endl;
-            }
-            else
-            {
-                std::cout << "GetObjectToFile fail"
-                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
-            }
             EXPECT_EQ(outcome.isSuccess(), false);
+            std::cout << "GetObjectToFile fail"
+                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+
+        }
+
+        TEST_F(AuthTest, SignV4AdditionalHeaderTest)
+        {
+            // clound-box and addtional header
+            ClientConfiguration conf;
+            std::vector<std::string> additional = {"host", "date"};
+            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
+                                                   .configuration(conf)
+                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
+                                                   .authVersion("4.0")
+                                                   .region("cn-hangzhou") // no use
+                                                   .cloudBoxId("cloudBoxId")
+                                                   .additionalHeaders(additional)
+                                                   .build<OssClient>();
+
+            GetObjectRequest request(BucketName, ObjectName);
+            auto outcome = client.GetObject(request);
+            EXPECT_EQ(outcome.isSuccess(), false);
+            std::cout << "GetObjectToFile fail"
+                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+
+        }
+
+        TEST_F(AuthTest, SignV4ParamsTest)
+        {
+            // clound-box and addtional header
+            ClientConfiguration conf;
+            std::vector<std::string> additional = {"host", "date"};
+            OssClient client = OssClient::Builder().endpoint(Config::Endpoint)
+                                                   .configuration(conf)
+                                                   .credentialsProvider(std::make_shared<SimpleCredentialsProvider>(Config::AccessKeyId, Config::AccessKeySecret))
+                                                   .authVersion("4.0")
+                                                   .region("cn-hangzhou") // no use
+                                                   .cloudBoxId("cloudBoxId")
+                                                   .additionalHeaders(additional)
+                                                   .build<OssClient>();
+
+            std::vector<std::string> etags;
+            std::map<std::string, std::string> maps;
+            maps["param1"] = "value1";
+            maps["empty"] = "";
+            GetObjectRequest request(BucketName, ObjectName, "", "", etags, etags, maps);
+            auto outcome = client.GetObject(request);
+            EXPECT_EQ(outcome.isSuccess(), false);
+            std::cout << "GetObjectToFile fail"
+                          << ",code:" << outcome.error().Code() << ",message:" << outcome.error().Message() << ",requestId:" << outcome.error().RequestId() << std::endl;
+
+            
+
         }
    }
 }

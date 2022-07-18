@@ -23,6 +23,7 @@
 #include "../utils/SignUtils.h"
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
+#include <alibabacloud/oss/http/HttpType.h>
 
 namespace AlibabaCloud
 {

@@ -186,6 +186,10 @@ void OssClient::OssClientBuiderImpl::init(OssClient *client)
     if (!region_.empty() && !authVersion_.empty()) {
         client->client_->initSigner(region_, authVersion_, product_);
     }
+
+    if (!additionalHeaders_.empty()) {
+        client->client_->setAdditionalHeaders(additionalHeaders_);
+    }
 }
 
 

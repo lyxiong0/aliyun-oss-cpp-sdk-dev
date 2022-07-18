@@ -30,21 +30,17 @@ namespace OSS
     class AuthSignerParam
     {
     public:
-        AuthSignerParam(std::string&& bucket, std::string&& key, ParameterCollection&& parameters, Credentials&& credentials, HeaderSet&& additionalHeaders, std::time_t &&requestTime):
+        AuthSignerParam(std::string&& bucket, std::string&& key, Credentials&& credentials, std::time_t &&requestTime):
             bucket_(bucket),
             key_(key),
-            parameters_(parameters),
             credentials_(credentials),
-            additionalHeaders_(additionalHeaders),
             requestTime_(requestTime)
         {}
 
-        AuthSignerParam(std::string& bucket, std::string& key, ParameterCollection& parameters, Credentials& credentials, HeaderSet& additionalHeaders, std::time_t &requestTime) :
+        AuthSignerParam(const std::string& bucket, const std::string& key, const Credentials& credentials, const std::time_t &requestTime) :
             bucket_(bucket),
             key_(key),
-            parameters_(parameters),
             credentials_(credentials),
-            additionalHeaders_(additionalHeaders),
             requestTime_(requestTime)
         {}
 
@@ -54,6 +50,8 @@ namespace OSS
         inline const Credentials& Cred() const { return credentials_; }
         inline const HeaderSet& AddiHeaders() const { return additionalHeaders_; }
         inline const std::time_t& RequestTime() const { return requestTime_;}
+        inline void setParameters(const ParameterCollection& parameters) { parameters_ = parameters; }
+        inline void setAdditionalHeaders(const HeaderSet& additionalHeaders) { additionalHeaders_ = additionalHeaders; }
 
     private:
         AuthSignerParam() = delete;

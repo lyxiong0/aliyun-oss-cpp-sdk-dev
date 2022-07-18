@@ -1064,11 +1064,52 @@ TEST_F(UtilsFunctionTest, UrlEncodeIgnoreSlashTest)
 {
     auto i = urlOriIgnoreSlash.size();
     for (i = 0; i < urlOriIgnoreSlash.size(); i++) {
-        auto result = UrlEncode(urlOriIgnoreSlash[i], true);
+        auto result = UrlEncodeIgnoreSlash(urlOriIgnoreSlash[i]);
         EXPECT_STREQ(result.c_str(), urlPatIgnoreSlash[i].c_str());
     }
     EXPECT_TRUE((i == urlOriIgnoreSlash.size()));
 }
 
+TEST_F(UtilsFunctionTest, GenResourceTest) {
+    std::string bucket;
+    std::string object;
+
+    std::string resource = GenResource(bucket, object);
+    EXPECT_STREQ("/", resource.c_str());
+    
+    bucket = "bucket";
+    resource = GenResource(bucket, object);
+    EXPECT_STREQ("/bucket/", resource.c_str());
+
+    object = "object";
+    resource = GenResource(bucket, object);
+    EXPECT_STREQ("/bucket/object", resource.c_str());
+}
+
+TEST_F(UtilsFunctionTest, GenScopeTest) {
+    // invalid params
+    std::string scope = GenScope("", "", "", "aliyun_v4_request");
+    EXPECT_STREQ("", scope.c_str());
+
+    std::string day = "20220718";
+    std::string region = "cn-hangzhou";
+    std::string product = "oss";
+
+    scope = GenScope(day, region, product, "aliyun_v4_request");
+    EXPECT_STREQ("20220718/cn-hangzhou/oss/aliyun_v4_request", scope.c_str());
+}
+
+// HeaderCollection
+TEST_F(UtilsFunctionTest, CaseInsensitiveLessTest) {
+    HeaderCollection coll;
+    coll[Http::HOST] = "testHost";
+    EXPECT_EQ(true, coll.find(Http::HOST) != coll.end());
+    EXPECT_EQ(true, coll.find("host") != coll.end());
+
+    HeaderSet set;
+    set.insert(Http::X_OSS_CONTENT_SHA256);
+    EXPECT_EQ(true, set.find(Http::X_OSS_CONTENT_SHA256) != set.end());
+    EXPECT_EQ(true, set.find("x-oss-content-sha256") != set.end());
+}
 }
 }

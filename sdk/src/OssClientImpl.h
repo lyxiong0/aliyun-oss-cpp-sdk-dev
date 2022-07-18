@@ -43,9 +43,7 @@ namespace OSS
         virtual ~OssClientImpl();
         int asyncExecute(Runnable * r) const;
 
-        inline void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders) {
-            additionalHeaders_ = additionalHeaders;
-        }
+        void setAdditionalHeaders(const std::vector<std::string> &additionalHeaders);
 
         void initSigner(const std::string &region = "", const std::string &version = "1.0", const std::string &product = "oss");
 
@@ -196,7 +194,7 @@ namespace OSS
         std::shared_ptr<Signer> signer_;
         std::shared_ptr<Executor> executor_;
         // "HMAC-SHA1" "HMAC-SHA256", default with version
-        std::vector<std::string> additionalHeaders_;
+        HeaderSet additionalHeaders_;
         bool isValidEndpoint_;
         std::shared_ptr<AuthSigner> authSigner_;
     };

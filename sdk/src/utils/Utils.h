@@ -20,6 +20,7 @@
 #include <ctime>
 #include <iostream>
 #include <alibabacloud/oss/Types.h>
+#include "LogUtils.h"
 
 namespace AlibabaCloud
 {
@@ -36,7 +37,8 @@ namespace OSS
     std::string ComputeContentETag(std::istream & stream);
 
     std::string GenerateUuid();
-    std::string UrlEncode(const std::string &src, bool ignoreSlash = false);
+    std::string UrlEncode(const std::string &src);
+    std::string UrlEncodeIgnoreSlash(const std::string & src);
     std::string UrlDecode(const std::string &src);
 
     std::string Base64Encode(const std::string &src);
@@ -126,6 +128,9 @@ namespace OSS
 
     const char * ToTierTypeName(TierType status);
     TierType ToTierType(const char *name);
+
+    std::string GenResource(const std::string &bucket, const std::string &object);
+    std::string GenScope(const std::string &day, const std::string &region, const std::string &product, const std::string &request);
 
 #if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
     std::map<std::string, std::string> JsonStringToMap(const std::string& jsonStr);

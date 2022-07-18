@@ -48,7 +48,7 @@ std::string AlibabaCloud::OSS::GenerateUuid()
     return "";
 }
 
-std::string AlibabaCloud::OSS::UrlEncode(const std::string & src, bool ignoreSlash)
+std::string AlibabaCloud::OSS::UrlEncode(const std::string & src)
 {
     std::stringstream dest;
     static const char *hex = "0123456789ABCDEF";
@@ -56,8 +56,27 @@ std::string AlibabaCloud::OSS::UrlEncode(const std::string & src, bool ignoreSla
 
     for (size_t i = 0; i < src.size(); i++) {
         c = src[i];
-        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')
-            || (ignoreSlash && c == '/')) {
+        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~')) {
+            dest << c;
+        } else if (c == ' ') {
+            dest << "%20";
+        } else {
+            dest << '%' << hex[c >> 4] << hex[c & 15];
+        }
+    }
+
+    return dest.str();
+}
+
+std::string AlibabaCloud::OSS::UrlEncodeIgnoreSlash(const std::string & src)
+{
+    std::stringstream dest;
+    static const char *hex = "0123456789ABCDEF";
+    unsigned char c;
+
+    for (size_t i = 0; i < src.size(); i++) {
+        c = src[i];
+        if (isalnum(c) || (c == '-') || (c == '_') || (c == '.') || (c == '~') || c == '/') {
             dest << c;
         } else if (c == ' ') {
             dest << "%20";
@@ -1151,6 +1170,37 @@ TierType AlibabaCloud::OSS::ToTierType(const char *name)
     if (!statusName.compare("expedited")) return TierType::Expedited;
     else if (!statusName.compare("bulk")) return TierType::Bulk;
     else return TierType::Standard;
+}
+
+std::string AlibabaCloud::OSS::GenResource(const std::string &bucket, const std::string &object) {
+    std::stringstream resource;
+    resource << "/";
+
+    if (!bucket.empty()) {
+        resource << bucket << "/";
+    }
+
+    if (!object.empty()) {
+        resource << object;
+    }
+
+    return resource.str();
+}
+
+std::string AlibabaCloud::OSS::GenScope(const std::string &day, const std::string &region, const std::string &product, const std::string &request) {
+    if (day.empty() || region.empty() || request.empty() || product.empty()) {
+        OSS_LOG(LogLevel::LogError, "Utils", "GenScope invalid params, day = %s, region = %s, product = %s, request = %s",
+                day.c_str(), region.c_str(), product.c_str(), request.c_str());
+        return "";
+    }
+
+    std::stringstream scope;
+    scope << day
+          << "/" << region
+          << "/" << product
+          << "/" << request;
+
+    return scope.str();
 }
 
 #if !defined(OSS_DISABLE_RESUAMABLE) || !defined(OSS_DISABLE_ENCRYPTION)
